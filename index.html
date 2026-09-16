@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+	<title>Stay With Kitty</title>
+	<link rel="icon" type="image/png" href="index.icon.png">
+	<link id="-gd-engine-icon" rel="icon" type="image/png" href="index.icon.png" />
+<link rel="apple-touch-icon" href="index.apple-touch-icon.png"/>
+
+	<style>
+		html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #efe4c9; }
+		body { display: flex; align-items: center; justify-content: center; }
+		#canvas { display: block; width: 100%; height: 100%; opacity: 0; transition: opacity .18s ease; }
+		#canvas.ready { opacity: 1; }
+		#loading-shell {
+			position: fixed; inset: 0; z-index: 10; display: flex; align-items: center; justify-content: center;
+			background: #efe4c9 url('index.png') center center / contain no-repeat;
+			transition: opacity .18s ease; pointer-events: none;
+		}
+		#loading-shell.hidden { opacity: 0; }
+	</style>
+</head>
+<body>
+	<canvas id="canvas">Your browser does not support the canvas tag.</canvas>
+	<div id="loading-shell" aria-label="Loading"></div>
+	<script src="index.js"></script>
+	<script>
+		const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":47332964,"index.wasm":37900721},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
+		const GODOT_THREADS_ENABLED = false;
+		const engine = new Engine(GODOT_CONFIG);
+		const canvas = document.getElementById('canvas');
+		const shell = document.getElementById('loading-shell');
+
+		engine.startGame().then(() => {
+			canvas.classList.add('ready');
+			shell.classList.add('hidden');
+			setTimeout(() => shell.remove(), 220);
+		}).catch((error) => {
+			console.error(error);
+		});
+	</script>
+</body>
+</html>
+
