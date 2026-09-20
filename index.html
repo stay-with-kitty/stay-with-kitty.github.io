@@ -14,30 +14,96 @@
 		#canvas { display: block; width: 100%; height: 100%; opacity: 0; transition: opacity .18s ease; }
 		#canvas.ready { opacity: 1; }
 		#loading-shell {
-			position: fixed; inset: 0; z-index: 10; display: flex; align-items: center; justify-content: center;
-			background: #efe4c9 url('index.png') center center / contain no-repeat;
+			position: fixed; inset: 0; z-index: 10; overflow: hidden; background: #efe4c9;
 			transition: opacity .18s ease; pointer-events: none;
 		}
 		#loading-shell.hidden { opacity: 0; }
+		#loading-design { position: absolute; width: 1920px; height: 1080px; transform-origin: center center; }
+		#loading-background {
+			position: absolute; inset: 0;
+			background: url('index.png') 0 0 / 4608px 2104px no-repeat;
+		}
+		#loading-cat {
+			position: absolute; left: 681px; top: 55px; width: 512px; height: 1024px;
+			background-image: url('index.png'); background-size: 4608px 2104px;
+			transform: scale(-0.94, 0.923); transform-origin: center center;
+			animation: kitty-walk 1s steps(9) infinite;
+		}
+		@keyframes kitty-walk {
+			from { background-position: 0 -1080px; }
+			to { background-position: -4608px -1080px; }
+		}
+		#loading-eye {
+			position: absolute; left: 1063px; top: 468px; width: 121.5px; height: 17.25px;
+			background: url('index.png') -2401.5px 0 / 3456px 1578px no-repeat;
+		}
+		#loading-progress {
+			position: absolute; left: 479.25px; top: 948px; width: 961.5px; height: 56.25px;
+			overflow: hidden;
+		}
+		#loading-progress-fill {
+			width: 0; height: 56.25px;
+			background: url('index.png') -1440px 0 / 3456px 1578px no-repeat;
+			transition: width .12s linear;
+		}
+		#loading-status, #loading-note {
+			position: absolute; left: 390px; width: 1140px; text-align: center;
+			color: #64503b; font-family: sans-serif; font-weight: 600;
+			text-shadow: 0 1px 2px rgba(255, 248, 222, .9);
+		}
+		#loading-status { top: 1008px; font-size: 25px; }
+		#loading-note { top: 1042px; font-size: 17px; font-weight: 500; }
 	</style>
 </head>
 <body>
 	<canvas id="canvas">Your browser does not support the canvas tag.</canvas>
-	<div id="loading-shell" aria-label="Loading"></div>
+	<div id="loading-shell" aria-label="Loading">
+		<div id="loading-design">
+			<div id="loading-background"></div>
+			<div id="loading-cat"></div>
+			<div id="loading-eye"></div>
+			<div id="loading-progress"><div id="loading-progress-fill"></div></div>
+			<div id="loading-status">小猫正在准备森林……</div>
+			<div id="loading-note">首次进入需要加载游戏资源，请稍候</div>
+		</div>
+	</div>
 	<script src="index.js"></script>
 	<script>
-		const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":47332964,"index.wasm":37900721},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
+		const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":42232404,"index.wasm":37900721},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
 		const GODOT_THREADS_ENABLED = false;
 		const engine = new Engine(GODOT_CONFIG);
 		const canvas = document.getElementById('canvas');
 		const shell = document.getElementById('loading-shell');
+		const design = document.getElementById('loading-design');
+		const progressFill = document.getElementById('loading-progress-fill');
+		const status = document.getElementById('loading-status');
 
-		engine.startGame().then(() => {
+		function fitLoadingDesign() {
+			const scale = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+			design.style.left = `${window.innerWidth * 0.5 - 960}px`;
+			design.style.top = `${window.innerHeight * 0.5 - 540}px`;
+			design.style.transform = `scale(${scale})`;
+		}
+		fitLoadingDesign();
+		window.addEventListener('resize', fitLoadingDesign);
+
+		engine.startGame({
+			onProgress: (current, total) => {
+				if (total > 0) {
+					const ratio = Math.max(0, Math.min(1, current / total));
+					progressFill.style.width = `${ratio * 961.5}px`;
+				} else {
+					status.textContent = '正在启动游戏……';
+				}
+			}
+		}).then(() => {
+			progressFill.style.width = '961.5px';
 			canvas.classList.add('ready');
 			shell.classList.add('hidden');
 			setTimeout(() => shell.remove(), 220);
 		}).catch((error) => {
 			console.error(error);
+			status.textContent = '加载失败，请刷新页面重试';
 		});
 	</script>
 </body>
